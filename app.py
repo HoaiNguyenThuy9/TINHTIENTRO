@@ -26,12 +26,11 @@ edited_df = st.data_editor(df, use_container_width=True)
 
 # Hàm tính toán chi tiết
 def calculate_all(row):
-    # Sử dụng max(0, ...) để đảm bảo kết quả không bao giờ âm
-    dien_tieu_thu = max(0, row["Số điện mới"] - row["Số điện cũ"])
-    nuoc_tieu_thu = max(0, row["Số nước mới"] - row["Số nước cũ"])
+    # Tính tiền điện: (Mới - Cũ) * Đơn giá
+    tien_dien = (row["Số điện mới"] - row["Số điện cũ"]) * row["Đơn giá điện"]
     
-    tien_dien = dien_tieu_thu * row["Đơn giá điện"]
-    tien_nuoc = nuoc_tieu_thu * row["Đơn giá nước"]
+    # Tính tiền nước: (Mới - Cũ) * Đơn giá
+    tien_nuoc = (row["Số nước mới"] - row["Số nước cũ"]) * row["Đơn giá nước"]
     
     # Tính tổng tiền
     tong_tien = tien_dien + tien_nuoc + row["Tiền phòng"] + row["Phí khác"]
@@ -40,7 +39,6 @@ def calculate_all(row):
 
 # Thực hiện tính toán
 results = edited_df.apply(calculate_all, axis=1)
-# Kết hợp lại bảng: Phòng + Kết quả tính toán + Dữ liệu gốc
 final_df = pd.concat([edited_df[["Phòng"]], results, edited_df.drop(columns=["Phòng"])], axis=1)
 
 st.subheader("Kết quả chi tiết")
