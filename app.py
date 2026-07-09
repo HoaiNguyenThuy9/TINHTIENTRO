@@ -3,7 +3,7 @@ import pandas as pd
 
 st.set_page_config(page_title="Quản lý tiền phòng", layout="wide")
 
-st.title("Ứng dụng Quản lý Tiền phòng trọ")
+st.title("Ứng dụng Quản lý Tiền phòng trọ (Đảm bảo số dương)")
 
 # Khởi tạo dữ liệu mẫu cho 10 phòng
 data = {
@@ -20,20 +20,19 @@ data = {
 
 df = pd.DataFrame(data)
 
-st.subheader("Nhập liệu số điện, nước và giá")
-# Người dùng nhập liệu trực tiếp trên bảng
+st.subheader("Nhập liệu thông số")
 edited_df = st.data_editor(df, use_container_width=True)
 
-# Hàm tính toán chi tiết
+# Hàm tính toán với điều kiện số dương
 def calculate_all(row):
-    # Tính tiền điện: (Mới - Cũ) * Đơn giá
-    tien_dien = (row["Số điện mới"] - row["Số điện cũ"]) * row["Đơn giá điện"]
+    # Sử dụng max(0, ...) để kết quả không bao giờ nhỏ hơn 0
+    so_dien = max(0.0, row["Số điện mới"] - row["Số điện cũ"])
+    so_nuoc = max(0.0, row["Số nước mới"] - row["Số nước cũ"])
     
-    # Tính tiền nước: (Mới - Cũ) * Đơn giá
-    tien_nuoc = (row["Số nước mới"] - row["Số nước cũ"]) * row["Đơn giá nước"]
+    tien_dien = so_dien * row["Đơn giá điện"]
+    tien_nuoc = so_nuoc * row["Đơn giá nước"]
     
-    # Tính tổng tiền
-    tong_tien = tien_dien + tien_nuoc + row["Tiền phòng"] + row["Phí khác"]
+    tong_tien = tien_dien + tien_nuoc + max(0.0, row["Tiền phòng"]) + max(0.0, row["Phí khác"])
     
     return pd.Series([tien_dien, tien_nuoc, tong_tien], index=["Tiền điện", "Tiền nước", "Tổng tiền"])
 
@@ -46,4 +45,4 @@ st.dataframe(final_df, use_container_width=True)
 
 # Tải file kết quả
 csv = final_df.to_csv(index=False).encode('utf-8')
-st.download_button("Tải bảng tính về máy (CSV)", csv, "quan_ly_tien_phong.csv", "text/csv")
+st.download_button("Tải bảng tính (CSV)", csv, "quan_ly_tien_phong.csv", "text/csv")
